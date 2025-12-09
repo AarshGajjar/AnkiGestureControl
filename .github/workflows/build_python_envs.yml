@@ -29,7 +29,10 @@ jobs:
           
       - name: Create Zip
         run: |
-          Compress-Archive -Path python_env\* -DestinationPath python_env_win32_AMD64.zip -Force
+          # Change to python_env directory and zip from inside to ensure consistent structure
+          cd python_env
+          Compress-Archive -Path * -DestinationPath ..\python_env_win32_AMD64.zip -Force
+          cd ..
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
