@@ -1,0 +1,101 @@
+{
+    "detection": {
+        "pitch_threshold": 12.0,
+        "yaw_threshold": 20.0,
+        "nod_max_time": 1.0,
+        "hold_min_time": 1.0,
+        "return_threshold": 8,
+        "cooldown_time": 1.0,
+        "scroll_cooldown": 0.1,
+        "swipe_threshold": 0.15,
+        "swipe_max_time": 0.5,
+        "smoothing_window": 5,
+        "calibration_frames": 30,
+        "scroll_amount": 20.0
+    },
+    "behavior": {
+        "auto_start": false,
+        "show_preview": true
+    },
+    "mediapipe": {
+        "face_mesh": {
+            "max_num_faces": 1,
+            "min_detection_confidence": 0.5,
+            "min_tracking_confidence": 0.5
+        },
+        "hands": {
+            "max_num_hands": 1,
+            "min_detection_confidence": 0.7,
+            "min_tracking_confidence": 0.5
+        }
+    },
+    "gesture_actions": {
+        "head": {
+            "nod_right": {
+                "type": "key",
+                "action": "space"
+            },
+            "hold_right": {
+                "type": "key",
+                "action": "3"
+            },
+            "nod_left": {
+                "type": "key",
+                "action": "1"
+            },
+            "hold_left": {
+                "type": "key",
+                "action": "2"
+            },
+            "nod_down": {
+                "type": "key",
+                "action": "5"
+            },
+            "hold_down": {
+                "type": "scroll",
+                "action": -100
+            },
+            "nod_up": {
+                "type": "key",
+                "action": "4"
+            },
+            "hold_up": {
+                "type": "scroll",
+                "action": 100
+            }
+        },
+        "hand": {
+            "fist": {
+                "type": "key",
+                "action": "s"
+            },
+            "swipe_left": {
+                "type": "hotkey",
+                "action": [
+                    "ctrl",
+                    "z"
+                ]
+            }
+        }
+    },
+    "controls": {
+        "quit_key": "q",
+        "recalibrate_key": "r"
+    },
+    "gestures": {
+        "nod_right": "action_answer_good",
+        "nod_left": "action_answer_again",
+        "nod_up": "action_answer_good",
+        "nod_down": "action_answer_good",
+        "hold_down": "action_scroll_down",
+        "hold_up": "action_scroll_up",
+        "hold_left": "action_bury",
+        "hold_right": "action_suspend",
+        "fist": "action_toggle_review",
+        "swipe_left": "action_undo"
+    },
+    "shortcuts": {
+        "toggle": "Ctrl+Shift+G",
+        "recalibrate": "Ctrl+Shift+R"
+    }
+}
