@@ -127,9 +127,15 @@ class IntroPage(QWizardPage):
         
         # Check if platform is supported for auto-download
         key = get_platform_key()
-        if not key:
+        
+        # TEMPORARY: Only Windows is hosted right now
+        if key and not key.startswith("win32"):
+             self.download_btn.setText(f"Manual Install Required ({key} support coming soon)")
+             self.download_btn.setEnabled(False)
+             # self.check_btn.setEnabled(True) # Ensure they can re-check after manual install
+        elif not key:
             self.download_btn.setText("Manual Install Required (Platform Unsupported)")
-            self.download_btn.setEnabled(False) # Or redirect to help page
+            self.download_btn.setEnabled(False) 
         else:
             self.download_btn.setText(f"Download Portable Environment ({key})")
 

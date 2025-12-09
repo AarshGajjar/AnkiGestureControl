@@ -85,5 +85,5 @@ You can access the configuration dialog by going to the **Gesture Control** menu
 
 *   Anki 2.1.50+
 *   A webcam
-*   **Mac/Linux**: Supported via automatic portable download (or Manual System Python 3.9).
-*   **Windows**: Supported via automatic portable download.
+*   **Mac/Linux**: Manual Python 3.9 installation required (Automatic support coming soon).
+*   **Windows**: Automatic portable download supported.
