@@ -67,7 +67,7 @@ class IntroPage(QWizardPage):
         
         self.info_label = QLabel(
             "To run advanced gesture recognition, we need a compatible Python environment.<br><br>"
-            "The addon can automatically download a portable version, or you can use an existing system Python 3.9."
+            "The addon can automatically download a portable Python environment for your platform (Windows, macOS Intel, macOS Apple Silicon, or Linux), or you can use an existing system Python 3.9."
         )
         self.info_label.setWordWrap(True)
         layout.addWidget(self.info_label)
@@ -128,16 +128,18 @@ class IntroPage(QWizardPage):
         # Check if platform is supported for auto-download
         key = get_platform_key()
         
-        # TEMPORARY: Only Windows is hosted right now
-        if key and not key.startswith("win32"):
-             self.download_btn.setText(f"Manual Install Required ({key} support coming soon)")
-             self.download_btn.setEnabled(False)
-             # self.check_btn.setEnabled(True) # Ensure they can re-check after manual install
-        elif not key:
+        if not key:
             self.download_btn.setText("Manual Install Required (Platform Unsupported)")
             self.download_btn.setEnabled(False) 
         else:
-            self.download_btn.setText(f"Download Portable Environment ({key})")
+            platform_names = {
+                "win32_AMD64": "Windows",
+                "macos_x86_64": "macOS Intel",
+                "macos_aarch64": "macOS Apple Silicon",
+                "linux_x86_64": "Linux"
+            }
+            platform_name = platform_names.get(key, key)
+            self.download_btn.setText(f"Download Portable Environment ({platform_name})")
 
         self.completeChanged.emit()
 

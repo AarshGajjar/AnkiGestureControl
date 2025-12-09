@@ -16,10 +16,9 @@ An addon for Anki that allows you to control your reviews using head and hand ge
 ## Installation and Setup
 
 1.  **Install the Addon**: Download the addon from the AnkiWeb addon page or install it manually.
-1.  **Install the Addon**: Download the addon from the AnkiWeb addon page or install it manually.
 2.  **Run the Onboarding Wizard**: The first time you start Anki after installing the addon, an onboarding wizard will appear.
-    *   **Windows**: The wizard can **automatically download** a portable Python environment, so no manual setup is needed!
-    *   **Mac/Linux**: The wizard will check for Python 3.9. If not found, you will need to install it manually.
+    *   **All Platforms**: The wizard can **automatically download** a portable Python environment for your platform (Windows, macOS Intel, macOS Apple Silicon, or Linux), so no manual setup is needed!
+    *   **Alternative**: The wizard will also check for an existing system Python 3.9 installation if you prefer to use that instead.
     *   The wizard sets up a dedicated environment for the gesture recognition library.
 
 ## How to Use
@@ -85,5 +84,4 @@ You can access the configuration dialog by going to the **Gesture Control** menu
 
 *   Anki 2.1.50+
 *   A webcam
-*   **Mac/Linux**: Manual Python 3.9 installation required (Automatic support coming soon).
-*   **Windows**: Automatic portable download supported.
+*   **All Platforms**: Automatic portable Python environment download supported (Windows, macOS Intel, macOS Apple Silicon, and Linux). Alternatively, you can use an existing system Python 3.9 installation.
