@@ -30,15 +30,26 @@ jobs:
       - name: Create Zip
         run: |
           # Change to python_env directory and zip from inside to ensure consistent structure
+          # The zip file is created in parent directory, so it won't be included in the zip
           cd python_env
           Compress-Archive -Path * -DestinationPath ..\python_env_win32_AMD64.zip -Force
           cd ..
+          # Verify the zip file doesn't contain itself (zip is in parent, so shouldn't be included)
+          $testDir = "test_extract_$(Get-Random)"
+          Expand-Archive -Path python_env_win32_AMD64.zip -DestinationPath $testDir -Force
+          $zipFiles = Get-ChildItem -Path $testDir -Recurse -File -Filter "*.zip" | Select-Object -ExpandProperty Name
+          Remove-Item -Path $testDir -Recurse -Force
+          if ($zipFiles -contains "python_env_win32_AMD64.zip") {
+            Write-Error "ERROR: Zip file contains itself!"
+            exit 1
+          }
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python_env_win32_AMD64
           path: python_env_win32_AMD64.zip
+          retention-days: 1
 
   build-macos-intel:
     runs-on: macos-15-intel  # Intel Mac runner (macos-15-intel)
@@ -64,12 +75,18 @@ jobs:
           cd python_env
           zip -r ../python_env_macos_x86_64.zip .
           cd ..
+          # Verify the zip file doesn't contain itself
+          if unzip -l python_env_macos_x86_64.zip | grep -q "python_env_macos_x86_64.zip"; then
+            echo "ERROR: Zip file contains itself!"
+            exit 1
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python_env_macos_x86_64
           path: python_env_macos_x86_64.zip
+          retention-days: 1
 
   build-macos-arm:
     runs-on: macos-15  # Apple Silicon runner (macos-15 supports ARM64)
@@ -95,12 +112,18 @@ jobs:
           cd python_env
           zip -r ../python_env_macos_aarch64.zip .
           cd ..
+          # Verify the zip file doesn't contain itself
+          if unzip -l python_env_macos_aarch64.zip | grep -q "python_env_macos_aarch64.zip"; then
+            echo "ERROR: Zip file contains itself!"
+            exit 1
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python_env_macos_aarch64
           path: python_env_macos_aarch64.zip
+          retention-days: 1
 
   build-linux:
     runs-on: ubuntu-latest
@@ -126,12 +149,18 @@ jobs:
           cd python_env
           zip -r ../python_env_linux_x86_64.zip .
           cd ..
+          # Verify the zip file doesn't contain itself
+          if unzip -l python_env_linux_x86_64.zip | grep -q "python_env_linux_x86_64.zip"; then
+            echo "ERROR: Zip file contains itself!"
+            exit 1
+          fi
           
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: python_env_linux_x86_64
           path: python_env_linux_x86_64.zip
+          retention-days: 1
 
   upload-release:
     needs: [build-windows, build-macos-intel, build-macos-arm, build-linux]
@@ -143,16 +172,41 @@ jobs:
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
+          pattern: python_env_*
+          merge-multiple: false
           path: artifacts
+      
+      - name: Prepare Release Files
+        run: |
+          # Create clean directory for release files
+          mkdir -p release_files
           
+          # Find and copy all zip files, ensuring we get the actual zip files (not nested)
+          # Artifacts are downloaded in structure: artifacts/artifact-name/zip-file.zip
+          # We want to extract just the zip files themselves
+          for zip_file in $(find artifacts -name "*.zip" -type f); do
+            # Get just the filename
+            filename=$(basename "$zip_file")
+            # Copy to release_files with original name
+            cp "$zip_file" "release_files/$filename"
+          done
+          
+          # Verify we have the right files
+          echo "Release files prepared:"
+          ls -lh release_files/
+          
+          # Verify zip files are valid and not nested
+          for zip_file in release_files/*.zip; do
+            echo "Checking $zip_file..."
+            if unzip -l "$zip_file" | grep -q "\.zip$"; then
+              echo "WARNING: $zip_file contains nested zip files!"
+            fi
+          done
+      
       - name: Upload to Release
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            artifacts/python_env_win32_AMD64/python_env_win32_AMD64.zip
-            artifacts/python_env_macos_x86_64/python_env_macos_x86_64.zip
-            artifacts/python_env_macos_aarch64/python_env_macos_aarch64.zip
-            artifacts/python_env_linux_x86_64/python_env_linux_x86_64.zip
+          files: release_files/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
