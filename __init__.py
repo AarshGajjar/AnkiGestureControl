@@ -12,7 +12,7 @@ from aqt.qt import QAction, QMenu, QKeySequence, QShortcut, Qt
 from anki.hooks import addHook
 from aqt import gui_hooks
 
-from .onboarding import check_venv_exists, run_wizard, PYTHON_VENV_PATH
+from .onboarding import check_venv_exists, run_wizard, get_python_path
 from .config_ui import ConfigDialog, DEFAULT_CONFIG
 
 ADDON_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -214,7 +214,7 @@ class GestureServer:
             json.dump(self.config, f, indent=4)
 
         # Start Worker Process
-        cmd = [PYTHON_VENV_PATH, WORKER_SCRIPT, "--port", str(self.port), "--config", config_path]
+        cmd = [get_python_path(), WORKER_SCRIPT, "--port", str(self.port), "--config", config_path]
         
         # Hide console on Windows
         startupinfo = None

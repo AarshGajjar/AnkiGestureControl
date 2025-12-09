@@ -1,6 +1,6 @@
 {
     "detection": {
-        "pitch_threshold": 12.0,
+        "pitch_threshold": 10.0,
         "yaw_threshold": 20.0,
         "nod_max_time": 1.0,
         "hold_min_time": 1.0,
@@ -85,8 +85,8 @@
     "gestures": {
         "nod_right": "action_answer_good",
         "nod_left": "action_answer_again",
-        "nod_up": "action_answer_good",
-        "nod_down": "action_answer_good",
+        "nod_up": "action_answer_hard",
+        "nod_down": "action_answer_easy",
         "hold_down": "action_scroll_down",
         "hold_up": "action_scroll_up",
         "hold_left": "action_bury",
