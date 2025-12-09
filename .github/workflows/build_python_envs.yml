@@ -9,7 +9,7 @@ jobs:
   build-windows:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download Python
         run: |
@@ -32,15 +32,15 @@ jobs:
           Compress-Archive -Path python_env\* -DestinationPath python_env_win32_AMD64.zip -Force
           
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python_env_win32_AMD64
           path: python_env_win32_AMD64.zip
 
   build-macos-intel:
-    runs-on: macos-13  # Intel Mac runner (macos-12/13 are Intel-only)
+    runs-on: macos-15-intel  # Intel Mac runner (macos-15-intel)
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download Python
         run: |
@@ -63,15 +63,15 @@ jobs:
           cd ..
           
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python_env_macos_x86_64
           path: python_env_macos_x86_64.zip
 
   build-macos-arm:
-    runs-on: macos-14  # Apple Silicon runner (macos-14+ supports ARM)
+    runs-on: macos-15  # Apple Silicon runner (macos-15 supports ARM64)
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download Python
         run: |
@@ -94,7 +94,7 @@ jobs:
           cd ..
           
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python_env_macos_aarch64
           path: python_env_macos_aarch64.zip
@@ -102,7 +102,7 @@ jobs:
   build-linux:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download Python
         run: |
@@ -125,7 +125,7 @@ jobs:
           cd ..
           
       - name: Upload Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: python_env_linux_x86_64
           path: python_env_linux_x86_64.zip
@@ -135,10 +135,10 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'release'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - name: Download All Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: artifacts
           
