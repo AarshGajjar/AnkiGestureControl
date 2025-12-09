@@ -1,0 +1,155 @@
+name: Build Python Environments
+
+on:
+  workflow_dispatch:  # Allows manual triggering
+  release:
+    types: [created]  # Also runs when a release is created
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Python
+        run: |
+          $url = "https://github.com/indygreg/python-build-standalone/releases/download/20230507/cpython-3.9.16+20230507-x86_64-pc-windows-msvc-shared-install_only.tar.gz"
+          $output = "python.tar.gz"
+          Invoke-WebRequest -Uri $url -OutFile $output
+          
+      - name: Extract Python
+        run: |
+          tar -xzf python.tar.gz
+          Rename-Item -Path "python" -NewName "python_env"
+          
+      - name: Install Requirements
+        run: |
+          .\python_env\python.exe -m pip install --upgrade pip
+          .\python_env\python.exe -m pip install -r requirements.txt
+          
+      - name: Create Zip
+        run: |
+          Compress-Archive -Path python_env\* -DestinationPath python_env_win32_AMD64.zip -Force
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python_env_win32_AMD64
+          path: python_env_win32_AMD64.zip
+
+  build-macos-intel:
+    runs-on: macos-13  # Intel Mac runner (macos-12/13 are Intel-only)
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Python
+        run: |
+          curl -L -o python.tar.gz "https://github.com/indygreg/python-build-standalone/releases/download/20230507/cpython-3.9.16+20230507-x86_64-apple-darwin-install_only.tar.gz"
+          
+      - name: Extract Python
+        run: |
+          tar -xzf python.tar.gz
+          mv python python_env
+          
+      - name: Install Requirements
+        run: |
+          ./python_env/bin/python3 -m pip install --upgrade pip
+          ./python_env/bin/python3 -m pip install -r requirements.txt
+          
+      - name: Create Zip
+        run: |
+          cd python_env
+          zip -r ../python_env_macos_x86_64.zip .
+          cd ..
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python_env_macos_x86_64
+          path: python_env_macos_x86_64.zip
+
+  build-macos-arm:
+    runs-on: macos-14  # Apple Silicon runner (macos-14+ supports ARM)
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Python
+        run: |
+          curl -L -o python.tar.gz "https://github.com/indygreg/python-build-standalone/releases/download/20230507/cpython-3.9.16+20230507-aarch64-apple-darwin-install_only.tar.gz"
+          
+      - name: Extract Python
+        run: |
+          tar -xzf python.tar.gz
+          mv python python_env
+          
+      - name: Install Requirements
+        run: |
+          ./python_env/bin/python3 -m pip install --upgrade pip
+          ./python_env/bin/python3 -m pip install -r requirements.txt
+          
+      - name: Create Zip
+        run: |
+          cd python_env
+          zip -r ../python_env_macos_aarch64.zip .
+          cd ..
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python_env_macos_aarch64
+          path: python_env_macos_aarch64.zip
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download Python
+        run: |
+          curl -L -o python.tar.gz "https://github.com/indygreg/python-build-standalone/releases/download/20230507/cpython-3.9.16+20230507-x86_64-unknown-linux-gnu-install_only.tar.gz"
+          
+      - name: Extract Python
+        run: |
+          tar -xzf python.tar.gz
+          mv python python_env
+          
+      - name: Install Requirements
+        run: |
+          ./python_env/bin/python3 -m pip install --upgrade pip
+          ./python_env/bin/python3 -m pip install -r requirements.txt
+          
+      - name: Create Zip
+        run: |
+          cd python_env
+          zip -r ../python_env_linux_x86_64.zip .
+          cd ..
+          
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: python_env_linux_x86_64
+          path: python_env_linux_x86_64.zip
+
+  upload-release:
+    needs: [build-windows, build-macos-intel, build-macos-arm, build-linux]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release'
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          path: artifacts
+          
+      - name: Upload to Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/python_env_win32_AMD64/python_env_win32_AMD64.zip
+            artifacts/python_env_macos_x86_64/python_env_macos_x86_64.zip
+            artifacts/python_env_macos_aarch64/python_env_macos_aarch64.zip
+            artifacts/python_env_linux_x86_64/python_env_linux_x86_64.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
