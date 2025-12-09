@@ -34,14 +34,14 @@ jobs:
           cd python_env
           Compress-Archive -Path * -DestinationPath ..\python_env_win32_AMD64.zip -Force
           cd ..
-          # Verify the zip file doesn't contain itself (zip is in parent, so shouldn't be included)
-          $testDir = "test_extract_$(Get-Random)"
-          Expand-Archive -Path python_env_win32_AMD64.zip -DestinationPath $testDir -Force
-          $zipFiles = Get-ChildItem -Path $testDir -Recurse -File -Filter "*.zip" | Select-Object -ExpandProperty Name
-          Remove-Item -Path $testDir -Recurse -Force
-          if ($zipFiles -contains "python_env_win32_AMD64.zip") {
-            Write-Error "ERROR: Zip file contains itself!"
+          # Verify zip was created and has reasonable size
+          if (-not (Test-Path python_env_win32_AMD64.zip)) {
+            Write-Error "ERROR: Zip file was not created!"
             exit 1
+          }
+          $zipSize = (Get-Item python_env_win32_AMD64.zip).Length
+          if ($zipSize -lt 1000000) {
+            Write-Warning "WARNING: Zip file seems unusually small ($zipSize bytes)"
           }
           
       - name: Upload Artifact
@@ -75,10 +75,14 @@ jobs:
           cd python_env
           zip -r ../python_env_macos_x86_64.zip .
           cd ..
-          # Verify the zip file doesn't contain itself
-          if unzip -l python_env_macos_x86_64.zip | grep -q "python_env_macos_x86_64.zip"; then
-            echo "ERROR: Zip file contains itself!"
+          # Verify zip was created and has reasonable size
+          if [ ! -f python_env_macos_x86_64.zip ]; then
+            echo "ERROR: Zip file was not created!"
             exit 1
+          fi
+          zip_size=$(stat -f%z python_env_macos_x86_64.zip 2>/dev/null || stat -c%s python_env_macos_x86_64.zip 2>/dev/null || echo "0")
+          if [ "$zip_size" -lt 1000000 ]; then
+            echo "WARNING: Zip file seems unusually small ($zip_size bytes)"
           fi
           
       - name: Upload Artifact
@@ -112,10 +116,14 @@ jobs:
           cd python_env
           zip -r ../python_env_macos_aarch64.zip .
           cd ..
-          # Verify the zip file doesn't contain itself
-          if unzip -l python_env_macos_aarch64.zip | grep -q "python_env_macos_aarch64.zip"; then
-            echo "ERROR: Zip file contains itself!"
+          # Verify zip was created and has reasonable size
+          if [ ! -f python_env_macos_aarch64.zip ]; then
+            echo "ERROR: Zip file was not created!"
             exit 1
+          fi
+          zip_size=$(stat -f%z python_env_macos_aarch64.zip 2>/dev/null || stat -c%s python_env_macos_aarch64.zip 2>/dev/null || echo "0")
+          if [ "$zip_size" -lt 1000000 ]; then
+            echo "WARNING: Zip file seems unusually small ($zip_size bytes)"
           fi
           
       - name: Upload Artifact
@@ -149,10 +157,14 @@ jobs:
           cd python_env
           zip -r ../python_env_linux_x86_64.zip .
           cd ..
-          # Verify the zip file doesn't contain itself
-          if unzip -l python_env_linux_x86_64.zip | grep -q "python_env_linux_x86_64.zip"; then
-            echo "ERROR: Zip file contains itself!"
+          # Verify zip was created and has reasonable size
+          if [ ! -f python_env_linux_x86_64.zip ]; then
+            echo "ERROR: Zip file was not created!"
             exit 1
+          fi
+          zip_size=$(stat -c%s python_env_linux_x86_64.zip 2>/dev/null || echo "0")
+          if [ "$zip_size" -lt 1000000 ]; then
+            echo "WARNING: Zip file seems unusually small ($zip_size bytes)"
           fi
           
       - name: Upload Artifact
@@ -195,11 +207,12 @@ jobs:
           echo "Release files prepared:"
           ls -lh release_files/
           
-          # Verify zip files are valid and not nested
+          # Verify zip files are valid
           for zip_file in release_files/*.zip; do
-            echo "Checking $zip_file..."
-            if unzip -l "$zip_file" | grep -q "\.zip$"; then
-              echo "WARNING: $zip_file contains nested zip files!"
+            echo "Verifying $zip_file..."
+            if ! unzip -t "$zip_file" > /dev/null 2>&1; then
+              echo "ERROR: $zip_file is not a valid zip file!"
+              exit 1
             fi
           done
       
