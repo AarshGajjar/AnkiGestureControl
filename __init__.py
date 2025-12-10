@@ -74,9 +74,20 @@ class GestureServer:
         self.recalibrate_action.triggered.connect(self.action_recalibrate)
         menu.addAction(self.recalibrate_action)
         
+        onboarding_action = QAction("Run Onboarding Wizard", mw)
+        onboarding_action.triggered.connect(self.run_onboarding_wizard)
+        menu.addAction(onboarding_action)
+
         config_action = QAction("Configuration", mw)
         config_action.triggered.connect(self.open_config)
         menu.addAction(config_action)
+
+    def run_onboarding_wizard(self):
+        """
+        Expose the onboarding wizard even if a system Python 3.9 is present.
+        Useful for users who want to switch to the portable env.
+        """
+        run_wizard()
 
     def open_config(self):
         ConfigDialog(mw).exec()

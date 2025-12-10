@@ -66,8 +66,8 @@ class IntroPage(QWizardPage):
         layout = QVBoxLayout()
         
         self.info_label = QLabel(
-            "To run advanced gesture recognition, we need a compatible Python environment.<br><br>"
-            "The addon can automatically download a portable Python environment for your platform (Windows, macOS Intel, macOS Apple Silicon, or Linux), or you can use an existing system Python 3.9."
+            "To run advanced gesture recognition, we need a dedicated portable Python environment.<br><br>"
+            "The addon will automatically download and set up a portable Python environment for your platform (Windows, macOS Intel, macOS Apple Silicon, or Linux)."
         )
         self.info_label.setWordWrap(True)
         layout.addWidget(self.info_label)
@@ -104,20 +104,14 @@ class IntroPage(QWizardPage):
         self.status_label.setStyleSheet("")
         self.download_btn.setVisible(False)
         
-        # 1. Check for Portable Environment (Prioritized)
+        # 1. Check for Portable Environment
         portable_python = self._get_local_python_path()
         if os.path.exists(portable_python):
              self._set_found(portable_python, "Portable Environment found!")
              return
-
-        # 2. Check for System Python 3.9 (Fallback)
-        found_system = self._check_system_python()
-        if found_system:
-             self._set_found(found_system, f"System Python found: {found_system}")
-             return
             
-        # 3. Not Found
-        self.status_label.setText("No compatible Python environment found.")
+        # 2. Not Found - prompt download (we no longer accept system Python)
+        self.status_label.setText("No portable Python environment found.")
         self.status_label.setStyleSheet("color: red")
         self.python_path = None
         
@@ -167,7 +161,7 @@ class IntroPage(QWizardPage):
                 if cmd == "py": args = ["py", "-3.9", "--version"]
 
                 output = subprocess.check_output(args, stderr=subprocess.STDOUT, startupinfo=self._get_startup_info()).decode().strip()
-                if "3.9" in output:
+                if _is_python_39_version(output):
                     # Resolve path
                     if os.path.sep in cmd:
                         return cmd
@@ -277,52 +271,20 @@ class IntroPage(QWizardPage):
 def get_python_path():
     """
     Returns the path to the python executable to use.
-    Prioritizes Portable Environment, then System Python.
+    Uses only the Portable Environment.
     Returns None if none found.
     """
-    # 1. Portable
-    if os.path.exists(PYTHON_VENV_PATH):
-        return PYTHON_VENV_PATH
-    
-    # 2. System (Reuse logic from IntroPage, but simplified/headless)
-    # We can't easily reuse the instance method without refactoring, 
-    # so we'll duplicate the simple check logic or instantiate wizard? 
-    # Instantiating wizard is heavy. Let's pull the logic out to a standalone function.
-    return _find_system_python()
-
-def _find_system_python():
-    candidates = ["python3.9", "python3", "python", "py"]
+    portable_candidates = []
     if sys.platform == "win32":
-        candidates.extend([
-            os.path.join(os.environ.get("ProgramFiles", ""), "Python39", "python.exe"),
-            os.path.join(os.environ.get("LOCALAPPDATA", ""), "Programs", "Python", "Python39", "python.exe")
-        ])
+        portable_candidates.append(os.path.join(PORTABLE_ENV_DIR, "python.exe"))
+    else:
+        # Some packaged environments expose `python3`, others `python`
+        portable_candidates.append(os.path.join(PORTABLE_ENV_DIR, "bin", "python3"))
+        portable_candidates.append(os.path.join(PORTABLE_ENV_DIR, "bin", "python"))
 
-    startupinfo = None
-    if sys.platform == "win32":
-        startupinfo = subprocess.STARTUPINFO()
-        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-
-    for cmd in candidates:
-        try:
-            if os.path.sep in cmd and not os.path.exists(cmd):
-                continue
-                
-            args = [cmd, "--version"]
-            if cmd == "py": args = ["py", "-3.9", "--version"]
-
-            output = subprocess.check_output(args, stderr=subprocess.STDOUT, startupinfo=startupinfo).decode().strip()
-            if "3.9" in output:
-                if os.path.sep in cmd: return cmd
-                if cmd == "py": return "py -3.9"
-                
-                # Resolve
-                return subprocess.check_output(
-                    ["where" if sys.platform == "win32" else "which", cmd], 
-                    startupinfo=startupinfo
-                ).decode().strip().split('\n')[0]
-        except:
-            continue
+    for p in portable_candidates:
+        if os.path.exists(p):
+            return p
     return None
 
 def check_venv_exists():

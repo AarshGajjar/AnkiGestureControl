@@ -3,3 +3,4 @@ __pycache__
 .vscode
 .qodo
 meta.json
+python_env
